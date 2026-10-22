@@ -142,12 +142,7 @@ textarea { resize:vertical; }
       <div><label>Make</label><input type="text" id="carMake" placeholder="Toyota"></div>
       <div><label>Model</label><input type="text" id="carModel" placeholder="Camry"></div>
       <div><label>Year</label><input type="number" id="carYear" placeholder="2020"></div>
-      <div><label>License plate</label>
-        <div style="display:flex;gap:6px">
-          <input type="text" id="carPlate" placeholder="ABC-1234" style="flex:1">
-          <select id="carState" style="width:76px;padding:12px 6px"></select>
-        </div>
-      </div>
+      <div><label>License plate</label><input type="text" id="carPlate" placeholder="ABC-1234 NY"></div>
       <div><label>Mileage, mi</label><input type="number" id="carMileage" placeholder="85000"></div>
       <div><label>Owner phone</label><input type="tel" id="carPhone" placeholder="+1..."></div>
     </div>
@@ -255,7 +250,6 @@ const fmtDate = d => {
 };
 const today = () => new Date().toISOString().slice(0, 10);
 
-const US_STATES = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
 
 let user = null, cars = [], currentCarId = null, works = [];
 let editingCarId = null, editingWorkId = null;
@@ -355,11 +349,6 @@ onAuthStateChanged(auth, u => {
   }
 });
 
-function fillStateSelect() {
-  $('carState').innerHTML = US_STATES.map(c => `<option value="${c}"${c === 'NY' ? ' selected' : ''}>${c}</option>`).join('');
-}
-fillStateSelect();
-
 // ===== VEHICLES (sorted client-side, no DB index needed) =====
 function subscribeCars() {
   onSnapshot(collection(db, 'cars'), snap => {
@@ -401,9 +390,7 @@ $('addCarBtn').onclick = () => {
   $('carModal').classList.remove('hidden');
   $('carModalError').textContent = '';
   $('vinStatus').textContent = '';
-  $('carState').value = localStorage.getItem('carState') || 'NY';
   ['vinInput','carMake','carModel','carYear','carPlate','carMileage','carPhone','carCustomer','carNotes']
-  fillStateSelect();
     .forEach(id => $(id).value = '');
 };
 $('cancelCarBtn').onclick = () => $('carModal').classList.add('hidden');
@@ -428,14 +415,12 @@ $('saveCarBtn').onclick = async () => {
     make: $('carMake').value.trim(),
     model: $('carModel').value.trim(),
     year: +$('carYear').value || null,
-    plate: $('carPlate').value.trim().toUpperCase() + ' ' + $('carState').value,
-    state: $('carState').value,
+    plate: $('carPlate').value.trim().toUpperCase(),
     mileage: +$('carMileage').value || null,
     phone: $('carPhone').value.trim(),
     customer: $('carCustomer').value.trim(),
     notes: $('carNotes').value.trim()
   };
-  localStorage.setItem('carState', $('carState').value);
   const btn = $('saveCarBtn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
@@ -468,9 +453,7 @@ window.editCar = () => {
   $('carMake').value = car.make || '';
   $('carModel').value = car.model || '';
   $('carYear').value = car.year || '';
-  const plateParts = String(car.plate || '').split(' ');
-  $('carPlate').value = plateParts[0] || '';
-  $('carState').value = (car.state || plateParts[1] || 'NY');
+  $('carPlate').value = car.plate || '';
   $('carMileage').value = car.mileage || '';
   $('carPhone').value = car.phone || '';
   $('carCustomer').value = car.customer || '';
